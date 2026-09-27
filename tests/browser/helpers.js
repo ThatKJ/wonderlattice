@@ -17,6 +17,7 @@ export const ROOMS = {
   plane: 'Bend the plane.',
   julia: 'A seed for an infinite landscape.',
   fingerprint: 'Grow a fingerprint.',
+  heart: 'A heartbeat travels.',
 };
 
 // Records page errors, captures clipboard writes, and exposes the optional

@@ -17,3 +17,4 @@ import '../../src/rooms/sample/model.js';
 import '../../src/rooms/plane/model.js';
 import '../../src/rooms/julia/model.js';
 import '../../src/rooms/fingerprint/model.js';
+import '../../src/rooms/heart/model.js';
