@@ -1,5 +1,9 @@
 # Project state — 2026-09-28
 
+## The leaning tower of blocks — 2026-09-29
+
+- **The leaning tower of blocks** (`blocks`, Games & puzzles, #79): Built the blocks room showing harmonic stacking over the edge of a table. Added math unit tests for the harmonic series limits and stable stack conditions, and Playwright tests for UI layout and keyboard interaction. Increased the trail limit from 24 to 32 to accommodate the 25th room and pass the trail integration test.
+
 ## Forty new ideas, and the first room from them: twenty-four — 2026-09-28
 
 - **Two losing games that win** (`parrondo`, Chance & evidence, #96, closes #81): Parrondo's paradox in Harmer and
