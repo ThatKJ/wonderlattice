@@ -28,6 +28,7 @@ Wonderlattice.languageFiles = {
     'traffic',
     'treasure',
     'waves',
+    'weather',
   ],
   fr: [
     'app',
@@ -52,6 +53,7 @@ Wonderlattice.languageFiles = {
     'traffic',
     'treasure',
     'waves',
+    'weather',
   ],
   he: [
     'app',
@@ -76,6 +78,7 @@ Wonderlattice.languageFiles = {
     'traffic',
     'treasure',
     'waves',
+    'weather',
   ],
   pt: [
     'app',
@@ -100,5 +103,6 @@ Wonderlattice.languageFiles = {
     'traffic',
     'treasure',
     'waves',
+    'weather',
   ],
 };
