@@ -29,6 +29,9 @@ Wonderlattice.defineText('blocks', 'en', {
     { name: 'Best Stack', note: 'Every block at its ideal position.' },
   ],
 
+  blocks: 'Blocks',
+  blocksHint: 'How many blocks in the stack',
+
   status: (n, overhang) => `${n} block${n === 1 ? '' : 's'} · ${overhang.toFixed(2)} block-lengths out`,
   toppled: 'The stack has toppled.',
 

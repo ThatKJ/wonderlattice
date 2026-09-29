@@ -191,10 +191,15 @@
     ctx.stroke();
     ctx.setLineDash([]);
 
+    // Once the stack has fallen, the guides and the overhang arrow go, and the status says so.
+    const fallen = M.firstUnstableInterface(centres) >= 0;
+    const status = $('scene-status');
+    if (status) status.textContent = fallen ? t.toppled : t.status(n, overhang(centres));
+
     // Milestone lines (1, 2, 3 block-lengths)
-    drawMilestone(ctx, t.milestones.m1, 1, blockH, overhang(centres) >= 1, width, height);
-    if (n > 5) drawMilestone(ctx, t.milestones.m2, 2, blockH, overhang(centres) >= 2, width, height);
-    if (n > 20) drawMilestone(ctx, t.milestones.m3, 3, blockH, overhang(centres) >= 3, width, height);
+    if (!fallen) drawMilestone(ctx, t.milestones.m1, 1, blockH, overhang(centres) >= 1, width, height);
+    if (!fallen && n > 5) drawMilestone(ctx, t.milestones.m2, 2, blockH, overhang(centres) >= 2, width, height);
+    if (!fallen && n > 20) drawMilestone(ctx, t.milestones.m3, 3, blockH, overhang(centres) >= 3, width, height);
 
     // Determine first unstable interface for highlighting
     const unstableAt = M.firstUnstableInterface(centres);
@@ -267,14 +272,14 @@
     }
 
     // Show CoM lines for each interface if reduced motion or explicitly wanted
-    if (n > 0 && (reduced || n <= 6)) {
+    if (!fallen && n > 0 && (reduced || n <= 6)) {
       for (let i = 0; i < n; i++) {
         drawComLine(ctx, centres, i, blockH);
       }
     }
 
     // Overhang readout arrow on the top block
-    if (n > 0) {
+    if (n > 0 && !fallen) {
       const topRight = modelToX(centres[n - 1] + 0.5);
       const edgePx = tableEdgePx;
       const arrowY = blockBottomY(n, blockH) - 15;
@@ -353,7 +358,7 @@
 
   function controls(s, stage) {
     return (
-      stage.slider('blocks', t.blocks, 0, 50, 1, s.centres.length) +
+      stage.slider('blocks', t.blocks, 0, 50, 1, s.centres.length, '', t.blocksHint) +
       '<div class="wide readout blocks-readout" id="blocks-readout"></div>'
     );
   }
