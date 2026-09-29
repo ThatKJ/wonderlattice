@@ -97,11 +97,25 @@ test('an empty stack is stable', () => {
 });
 
 test('a single block at centre 0 is stable (CoM at table edge)', () => {
-  assert.ok(M.isStable([0])); // centre at 0 → right edge at 0.5, CoM at 0 ≤ 0.5
+  assert.ok(M.isStable([0])); // centre at 0, CoM at 0 ≤ 0
 });
 
-test('a single block with centre > 0.5 is unstable', () => {
-  assert.ok(!M.isStable([0.51])); // CoM at 0.51 > 0.5 (table support edge)
+test('a single block with centre > 0 is unstable', () => {
+  assert.ok(!M.isStable([0.01])); // CoM at 0.01 > 0 (table support edge)
+});
+
+test('the best 4-block stack shifted 0.45 to the right is unstable', () => {
+  const c = M.optimalStack(4);
+  for (let i = 0; i < c.length; i++) c[i] += 0.45;
+  assert.ok(!M.isStable(c));
+});
+
+test('a block placed far to the left of the block below is unstable', () => {
+  assert.ok(!M.isStable([-0.5, -0.5, -3.5]));
+});
+
+test('a block placed far to the left on the table is stable', () => {
+  assert.ok(M.isStable([-10])); // table extends infinitely to the left
 });
 
 // ── firstUnstableInterface ────────────────────────────────────────────────────

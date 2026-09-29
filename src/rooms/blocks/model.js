@@ -117,8 +117,9 @@
       weightedSum += centres[i];
       const aboveCount = n - i;
       const combinedCom = weightedSum / aboveCount;
-      const supportEdge = i > 0 ? centres[i - 1] + 0.5 : 0.5; // table edge is 0, half-length = 0.5
-      if (combinedCom > supportEdge + 1e-9) return false;
+      const supportRightEdge = i > 0 ? centres[i - 1] + 0.5 : 0; // table edge is 0
+      const supportLeftEdge = i > 0 ? centres[i - 1] - 0.5 : -Infinity; // table extends to the left
+      if (combinedCom > supportRightEdge + 1e-9 || combinedCom < supportLeftEdge - 1e-9) return false;
     }
     return true;
   }
@@ -135,8 +136,9 @@
       weightedSum += centres[i];
       const aboveCount = n - i;
       const combinedCom = weightedSum / aboveCount;
-      const supportEdge = i > 0 ? centres[i - 1] + 0.5 : 0.5;
-      if (combinedCom > supportEdge + 1e-9) return i;
+      const supportRightEdge = i > 0 ? centres[i - 1] + 0.5 : 0;
+      const supportLeftEdge = i > 0 ? centres[i - 1] - 0.5 : -Infinity;
+      if (combinedCom > supportRightEdge + 1e-9 || combinedCom < supportLeftEdge - 1e-9) return i;
     }
     return -1;
   }

@@ -7,9 +7,10 @@ Wonderlattice.defineText('blocks', 'en', {
   subtitle: 'Drag blocks onto the table edge. How far out can you reach?',
   field: 'Centre of mass · Harmonic series · A slow surprise',
   sceneLabel: 'A table edge · Blocks to stack',
-  sceneName: 'Empty table',
+  sceneName: (n) => (n === 0 ? 'Empty table' : 'Stacked blocks'),
   tip: 'Drag a block onto the stack, or use arrow keys to nudge the top block. Press B for Best Stack.',
   actionLabel: 'Best Stack',
+  lengthsLabel: (oh) => `${oh.toFixed(2)} lengths`,
   canvasLabel:
     'A table with blocks stacked at its edge. Drag blocks to adjust their positions. The stack tips if the centre of mass goes past the support.',
   panelEyebrow: 'Adjust the stack',
@@ -28,15 +29,7 @@ Wonderlattice.defineText('blocks', 'en', {
     { name: 'Best Stack', note: 'Every block at its ideal position.' },
   ],
 
-  blocks: 'Blocks',
-  blocksHint: 'How many blocks to stack',
-  countLabel: (n) => (n === 1 ? '1 block' : `${n} blocks`),
-
-  overhang: 'Overhang',
-  overMax: (n) => `${n} block-length${n === 1 ? '' : 's'}`,
-
   status: (n, overhang) => `${n} block${n === 1 ? '' : 's'} · ${overhang.toFixed(2)} block-lengths out`,
-  teetering: 'Teetering!',
   toppled: 'The stack has toppled.',
 
   milestones: {

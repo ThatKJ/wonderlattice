@@ -46,6 +46,7 @@
   let dragging = false; // true while a drag is active
   let dragIndex = -1; // which block is being dragged (-1 = new block from tray)
   let dragOffsetX = 0; // offset inside the block where the pointer grabbed
+  let toppleStart = 0; // clock time when topple started
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -60,7 +61,7 @@
    */
   function maxCentreAt(centres, i) {
     const n = centres.length;
-    const supportEdge = i > 0 ? centres[i - 1] + 0.5 : 0.5;
+    const supportEdge = i > 0 ? centres[i - 1] + 0.5 : 0;
     let sumAboveExcluding = 0;
     for (let k = i + 1; k < n; k++) sumAboveExcluding += centres[k];
     const count = n - i;
@@ -198,6 +199,23 @@
     // Determine first unstable interface for highlighting
     const unstableAt = M.firstUnstableInterface(centres);
 
+    if (unstableAt < 0) {
+      toppleStart = 0;
+    } else if (!toppleStart) {
+      toppleStart = stage.clock || 0.001;
+    }
+    const toppleElapsed = toppleStart ? Math.max(0, stage.clock - toppleStart) : 0;
+
+    // "Tray": a ghost block below the table edge if n < some max
+    if (n < 50 && !dragging && unstableAt < 0) {
+      // Draw a ghost block at the optimal next position
+      const opt = M.optimalStack(n + 1);
+      const nextCentre = opt.length > 0 ? opt[0] : 0;
+      ctx.globalAlpha = 0.25;
+      drawBlock(ctx, nextCentre, stackBaseY, blockH, blockW, COLORS.blockFill, COLORS.blockStroke);
+      ctx.globalAlpha = 1;
+    }
+
     // Draw blocks from bottom to top
     for (let i = 0; i < n; i++) {
       const isUnstable = unstableAt >= 0 && i >= unstableAt;
@@ -215,6 +233,28 @@
         stroke = COLORS.blockDragStroke;
       }
 
+      ctx.save();
+      if (isUnstable && toppleElapsed > 0) {
+        // Find the pivot x
+        let sum = 0;
+        for (let k = unstableAt; k < n; k++) sum += centres[k];
+        const com = sum / (n - unstableAt);
+        const supportRight = unstableAt > 0 ? centres[unstableAt - 1] + 0.5 : 0;
+        const supportLeft = unstableAt > 0 ? centres[unstableAt - 1] - 0.5 : -Infinity;
+        const pivotModelX = com < supportLeft ? supportLeft : supportRight;
+        const pivotDir = com < supportLeft ? -1 : 1;
+
+        const pivotPx = modelToX(pivotModelX);
+        const pivotPy = blockBottomY(unstableAt, blockH);
+
+        const angle = Math.min(Math.PI / 2, toppleElapsed * toppleElapsed * 4) * pivotDir;
+        const dropY = toppleElapsed > 0.5 ? (toppleElapsed - 0.5) * (toppleElapsed - 0.5) * 800 : 0;
+
+        ctx.translate(pivotPx, pivotPy + dropY);
+        ctx.rotate(angle);
+        ctx.translate(-pivotPx, -pivotPy);
+      }
+
       drawBlock(ctx, centres[i], bottomY, blockH, blockW, fill, stroke);
 
       // Block number label
@@ -223,6 +263,7 @@
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(String(n - i), modelToX(centres[i]), bottomY - blockH / 2);
+      ctx.restore();
     }
 
     // Show CoM lines for each interface if reduced motion or explicitly wanted
@@ -236,7 +277,7 @@
     if (n > 0) {
       const topRight = modelToX(centres[n - 1] + 0.5);
       const edgePx = tableEdgePx;
-      const arrowY = blockBottomY(n, blockH) + blockH * 0.5;
+      const arrowY = blockBottomY(n, blockH) - 15;
       if (topRight > edgePx + 4) {
         ctx.strokeStyle = COLORS.overLabel;
         ctx.lineWidth = 1.5;
@@ -263,31 +304,10 @@
       ctx.fillStyle = COLORS.overLabel;
       ctx.font = `11px system-ui`;
       ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
+      ctx.textBaseline = 'bottom';
       const midX = (edgePx + topRight) / 2;
       const oh = overhang(centres);
-      ctx.fillText(`${oh.toFixed(2)} lengths`, midX, arrowY + 4);
-    }
-
-    // If toppled, overlay message
-    if (unstableAt >= 0) {
-      ctx.fillStyle = 'rgba(10,14,21,0.5)';
-      ctx.fillRect(0, 0, width, height);
-      ctx.fillStyle = COLORS.toppled;
-      ctx.font = `bold ${Math.max(14, height * 0.04)}px system-ui`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(t.toppled, width / 2, height * 0.3);
-    }
-
-    // "Tray": a ghost block below the table edge if n < some max
-    if (n < 50 && !dragging && unstableAt < 0) {
-      // Draw a ghost block at the optimal next position
-      const opt = M.optimalStack(n + 1);
-      const nextCentre = opt.length > 0 ? opt[0] : 0;
-      ctx.globalAlpha = 0.25;
-      drawBlock(ctx, nextCentre, stackBaseY, blockH, blockW, COLORS.blockFill, COLORS.blockStroke);
-      ctx.globalAlpha = 1;
+      ctx.fillText(t.lengthsLabel ? t.lengthsLabel(oh) : `${oh.toFixed(2)} lengths`, midX, arrowY - 4);
     }
   }
 
@@ -297,6 +317,8 @@
     const n = s.centres.length;
     const oh = overhang(s.centres);
     $('scene-status').textContent = t.status(n, oh);
+    const sn = $('scene-name');
+    if (sn) sn.textContent = t.sceneName(n);
     // Keep the slider (if any) in sync
     const input = $('c-blocks');
     if (input && Number(input.value) !== n) input.value = n;
@@ -331,7 +353,7 @@
 
   function controls(s, stage) {
     return (
-      stage.slider('blocks', t.blocks, 0, 40, 1, s.centres.length, '', t.blocksHint) +
+      stage.slider('blocks', t.blocks, 0, 50, 1, s.centres.length) +
       '<div class="wide readout blocks-readout" id="blocks-readout"></div>'
     );
   }
@@ -341,7 +363,7 @@
     const slider = $('c-blocks');
     if (!slider) return;
     slider.addEventListener('input', () => {
-      const target = Math.max(0, Math.min(40, Number(slider.value)));
+      const target = Math.max(0, Math.min(50, Number(slider.value)));
       const current = s.centres.length;
       if (target === current) return;
       if (target > current) {
@@ -365,10 +387,10 @@
 
   W.defineRoom({
     id: 'blocks',
-    symbol: '🧱',
+    symbol: '☰',
     eyebrow: t.eyebrow,
     name: t.name,
-    theme: 'games',
+    theme: 'engineering',
     tagline: t.tagline,
     accent: { background: '#192820', border: '#7dc9a8', color: '#b4eed3' },
 
@@ -386,7 +408,7 @@
     connection: { ...t.connection, go: 'floor' },
 
     defaults: { centres: [], blocks: 0 },
-    ranges: { blocks: [0, 40, 'integer'] },
+    ranges: { blocks: [0, 50, 'integer'] },
     defaultPreset: 0,
 
     presets: [
@@ -478,7 +500,6 @@
       }
       stage.refresh();
     },
-
 
     restore(saved, s) {
       if (Array.isArray(saved.centres)) {

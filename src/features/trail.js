@@ -68,7 +68,7 @@
         ([k, v]) =>
           /^[a-zA-Z]{1,30}$/.test(k) &&
           ((['number', 'boolean'].includes(typeof v) && (typeof v !== 'number' || Number.isFinite(v))) ||
-            (Array.isArray(v) && v.length <= 100 && v.every((x) => typeof x === 'number' && Number.isFinite(x))))
+            (Array.isArray(v) && v.length <= 100 && v.every((x) => typeof x === 'number' && Number.isFinite(x)))),
       )
     );
   }
